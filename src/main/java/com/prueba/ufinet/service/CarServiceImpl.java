@@ -1,5 +1,6 @@
 package com.prueba.ufinet.service;
 
+import com.prueba.ufinet.exception.CarValidationException;
 import com.prueba.ufinet.model.Car;
 import com.prueba.ufinet.model.User;
 import com.prueba.ufinet.repository.CarRepository;
@@ -20,6 +21,18 @@ public class CarServiceImpl implements CarService {
 
     @Override
     public Car saveCar(Car car, User user) {
+        if (car.getBrand() == null || car.getBrand().trim().isEmpty()) {
+            throw new CarValidationException("La marca es obligatoria");
+        }
+        if (car.getModel() == null || car.getModel().trim().isEmpty()) {
+            throw new CarValidationException("El modelo es obligatorio");
+        }
+        if (car.getYear() == null || car.getYear() < 1900 || car.getYear() > 2100) {
+            throw new CarValidationException("El año es inválido");
+        }
+        if (car.getPlateNumber() == null || car.getPlateNumber().trim().isEmpty()) {
+            throw new CarValidationException("La placa es obligatoria");
+        }
         car.setUser(user);
         carRepository.save(car);
         return carRepository.findById(car.getId()).orElse(null);
@@ -39,6 +52,18 @@ public class CarServiceImpl implements CarService {
     public Car updateCar(Car car, User user) {
         Optional<Car> existing = carRepository.findByIdAndUser(car.getId(), user);
         if (existing.isPresent()) {
+            if (car.getBrand() == null || car.getBrand().trim().isEmpty()) {
+                throw new CarValidationException("La marca es obligatoria");
+            }
+            if (car.getModel() == null || car.getModel().trim().isEmpty()) {
+                throw new CarValidationException("El modelo es obligatorio");
+            }
+            if (car.getYear() == null || car.getYear() < 1900 || car.getYear() > 2100) {
+                throw new CarValidationException("El año es inválido");
+            }
+            if (car.getPlateNumber() == null || car.getPlateNumber().trim().isEmpty()) {
+                throw new CarValidationException("La placa es obligatoria");
+            }
             Car toUpdate = existing.get();
             toUpdate.setBrand(car.getBrand());
             toUpdate.setModel(car.getModel());
@@ -47,7 +72,7 @@ public class CarServiceImpl implements CarService {
             toUpdate.setColor(car.getColor());
             return carRepository.save(toUpdate);
         }
-        throw new RuntimeException("Car not found or not authorized");
+        throw new CarValidationException("Carro no encontrado o no autorizado");
     }
 
     @Override
@@ -56,4 +81,3 @@ public class CarServiceImpl implements CarService {
         car.ifPresent(carRepository::delete);
     }
 }
-
